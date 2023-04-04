@@ -1,0 +1,16 @@
+import sqlalchemy
+from sqlalchemy import orm
+from .db_session2 import SqlAlchemyBase
+
+
+class UserData(SqlAlchemyBase):
+    __tablename__ = 'user_data'
+
+    id = sqlalchemy.Column(sqlalchemy.Integer,
+                           primary_key=True, autoincrement=True)
+    login = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
+    name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    address = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    #предлагаю здесь хранить последние три адреса, разделенные каким-то символом
+
+    questions = orm.relationship("RequestHistory", back_populates='user')
