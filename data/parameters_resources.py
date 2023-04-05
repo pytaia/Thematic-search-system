@@ -1,0 +1,52 @@
+from flask import jsonify
+from flask_restful import abort, Resource
+
+from data import db_session1
+from data.parameters import Parameters
+from data.reqparse_parameters import parser
+
+
+def abort_if_parameters_not_found(parameters_name_or_id):
+    session = db_session1.create_session()
+    if parameters_name_or_id.isdigit():
+        parameters = session.query(Parameters).get(parameters_name_or_id)
+    else:
+        parameters = session.query(Parameters).filter(Parameters.name_param.
+                                                      like(f'%{parameters_name_or_id}%'))
+    if not parameters:
+        abort(404, message=f"Parameters_name {parameters_name_or_id} not found")
+
+
+class ParametersResource(Resource):
+    def get(self, parameters_name):
+        abort_if_parameters_not_found(parameters_name)
+        session = db_session1.create_session()
+        parameters = session.query(Parameters).filter(Parameters.name_param.
+                                                         like(f'%{parameters_name}%'))
+        return jsonify({'parameters': [item.to_dict(
+            only=('name_param', 'keys')) for item in parameters]})
+
+    def delete(self, parameters_id):
+        abort_if_parameters_not_found(parameters_id)
+        session = db_session1.create_session()
+        session.query(Parameters).get(parameters_id).delete()
+        session.commit()
+        return jsonify({'success': 'OK'})
+
+
+class ParametersListResource(Resource):
+    def get(self):
+        session = db_session1.create_session()
+        parameters = session.query(Parameters).all()
+        return jsonify({'parameters': [item.to_dict(
+            only=('name_param', 'keys')) for item in parameters]})
+
+    def post(self):
+        args = parser.parse_args()
+        session = db_session1.create_session()
+        parameters = Parameters(
+            name_param=args['name_param'],
+            keys=args['keys'])
+        session.add(parameters)
+        session.commit()
+        return jsonify({'success': 'OK'})
