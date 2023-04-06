@@ -2,6 +2,7 @@ import sqlalchemy
 from .db_session1 import SqlAlchemyBase
 
 
+# база данных с запросами для разных типов организаций
 class Organizations(SqlAlchemyBase):
     __tablename__ = 'organizations'
 

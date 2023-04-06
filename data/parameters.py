@@ -2,6 +2,7 @@ import sqlalchemy
 from .db_session1 import SqlAlchemyBase
 
 
+# база данных со списком ключей для получения информации об организациях
 class Parameters(SqlAlchemyBase):
     __tablename__ = 'parameters'
 

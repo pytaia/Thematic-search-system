@@ -5,6 +5,7 @@ from sqlalchemy import orm
 from .db_session2 import SqlAlchemyBase
 
 
+# база данных со списком запросов пользователей к системе
 class RequestHistory(SqlAlchemyBase):
     __tablename__ = 'request_history'
 

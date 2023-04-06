@@ -14,6 +14,7 @@ api = Api(app)
 def main():
     db_session1.global_init("db/goods_and_services.db")
     db_session2.global_init("db/system_users.db")
+    # квест не запутаться в этом:
     api.add_resource(organizations_resources.OrganizationsListResource, '/api/v2/organizations')
     api.add_resource(organizations_resources.OrganizationsResource, '/api/v2/organizations/<name_or_id>')
     api.add_resource(parameters_resources.ParametersListResource, '/api/v2/parameters')
