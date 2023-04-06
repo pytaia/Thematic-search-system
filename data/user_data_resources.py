@@ -57,7 +57,7 @@ class UserDataListResource(Resource):
         session = db_session2.create_session()
         users = session.query(UserData).all()
         return jsonify({'request_history': [item.to_dict(
-            only=('login', 'name', 'address')) for item in users]})
+            only=('login',)) for item in users]})
 
     def post(self):
         # создание нового элемента (указать надо только логин)
