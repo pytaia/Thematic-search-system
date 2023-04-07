@@ -1,14 +1,16 @@
 import logging
+from telegram.ext import ConversationHandler
 from telegram.ext import Application, MessageHandler, filters
 from telegram.ext import CommandHandler
 
 from data.user_data import UserData
 from data.request_history import RequestHistory
 from data import db_session2
-from main import main
+from main import main as bd_main
+from work_with_api import address_is_true
 
 
-main()
+
 #logging.basicConfig(
 #    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
 #)
@@ -18,8 +20,7 @@ main()
 
 async def start(update, context):
     """Отправляет сообщение когда получена команда /start"""
-    # здесь вывод тоже будет редактироваться под стилистику общения бота
-    print(update.effective_user.username)
+    # здесь вывод тоже будет редактироваться под стилистику общения бота, но в целом готово
     user = update.effective_user
     db_sess = db_session2.create_session()
     if user.username not in [item.login for item in db_sess.query(UserData).all()]:
@@ -30,37 +31,122 @@ async def start(update, context):
         await update.message.reply_html(
             rf"Привет {user.mention_html()}! Я ... .",
         )
-        # skip ущу не прописано
         await update.message.reply_html(
-            rf"Как к тебе обращаться? (Напиши имя или команду /skip, если тебя устраивает это обращение)",
+            rf"Как к тебе обращаться? (Напиши имя или skip, если тебя устраивает это обращение)",
         )
+        return 1
     else:
         user = user.username
-        name = db_sess.query(UserData).filter(UserData.login.like(user)).first()['name']
+        new_user = db_sess.query(UserData).filter(UserData.login.like(user)).first()
         await update.message.reply_html(
-            rf"Привет {name}!",
+            rf"Привет {new_user.name}!",
         )
+        if not new_user.address:
+            await update.message.reply_html(
+                rf"{new_user.name}, для упрощения работы программы укажите свой адрес или напишите skip, для пропуска этого этапа.",
+            )
+            return 2
+
+
+async def rename(update, context):
+    # пока заглушка
+    pass
+
+
+async def readdress(update, context):
+    # пока заглушка
+    pass
+
+
+async def my_name(update, context):
+    # функция для знакомства. надо добавить еще функцию изменения имени, которая будет приводить сюда же
+    user = update.effective_user
+    name = update.message.text
+    db_sess = db_session2.create_session()
+    new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
+    if name == 'skip':
+        new_user.name = user.mention_html()
+    else:
+        new_user.name = name
+    db_sess.commit()
+    await update.message.reply_html(
+        rf"{new_user.name}, имя вы всегда сможете изменить вызвав функцию /name",
+    )
+    if not new_user.address:
+        await update.message.reply_html(
+            rf"{new_user.name}, для упрощения работы программы укажите свой адрес или напишите skip, для пропуска этого этапа.",
+        )
+        return 2
+
+
+async def my_address(update, context):
+    # функция, узнающая адрес, или соглашающаяся узнать его позже. еще надо направляющую сюда функцию написать.
+    user = update.effective_user
+    address = update.message.text
+    db_sess = db_session2.create_session()
+    new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
+    if address == 'skip':
+        await update.message.reply_html(
+            rf"Хорошо, вернемся к этому позже.",
+        )
+    else:
+        if address_is_true(address):
+            new_user.address = address
+            db_sess.commit()
+            await update.message.reply_html(
+                rf"Ваш адрес изменен",
+            )
+        else:
+            await update.message.reply_html(
+                rf"Ваш адрес не найден. Проверьте коректность записи и попробуйте еще раз, вызвав функцию /address",
+            )
+    await update.message.reply_html(
+        rf"Пока это все, что умеет этот бот",
+    )
 
 
 async def help_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     # фраза вывода еще будет редактироваться, пока оставлю это как заглушку
-    await update.message.reply_text("Я пока не умею помогать... Я только ваше эхо.")
+    await update.message.reply_text("Здравствуйте, я ... .")
+    await update.message.reply_text("Вот, что я уже умею:\n"
+                                    "/start -- начать работу.\n"
+                                    "/name -- изменить имя пользователя.\n"
+                                    "/address -- изменить адрес по умолчанию.\n"
+                                    "/help -- получить справку о работе программы")
 
 
 async def echo(update, context):
+    # обработчик сообщений, думаю отсюда начнется твоя часть.
     await update.message.reply_text(f"Я получил сообщение {update.message.text}")
 
 
 def main():
+    # временный юз бота @my_helpik_bot
     # ПОМЕНЯТЬ ТОКЕН ПЕРЕД СДАЧЕЙ
+    bd_main()
     application = Application.builder().token('6042512660:AAGMdc8FAhR1XovphTfkB1Rin7lQG6Lg6gU').build()
 
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
 
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start)],
+
+        states={
+            # Функция читает ответ на первый вопрос и задаёт второй.
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_name)],
+            # Функция читает ответ на второй вопрос и завершает диалог.
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_address)]
+        },
+
+        # Точка прерывания диалога. В данном случае — команда /stop.
+        fallbacks=[CommandHandler("help", help_command), CommandHandler("name", rename),
+                   CommandHandler("address", readdress)] #CommandHandler('stop', stop),
+    )
+
+    application.add_handler(conv_handler)
+
     application.add_handler(text_handler)
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
 
     application.run_polling()
 
