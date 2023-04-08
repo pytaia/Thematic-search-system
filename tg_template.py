@@ -7,7 +7,7 @@ from data.user_data import UserData
 from data.request_history import RequestHistory
 from data import db_session2
 from main import main as bd_main
-from work_with_api import address_is_true
+from work_with_api import address_is_true, work_with_request
 
 
 
@@ -48,14 +48,26 @@ async def start(update, context):
             return 2
 
 
+async def stop(update, context):
+    user = update.effective_user
+    db_sess = db_session2.create_session()
+    new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
+    await update.message.reply_html(
+        rf"До свидания, {new_user.name}!",
+    )
+    return ConversationHandler.END
+
+
 async def rename(update, context):
-    # пока заглушка
-    pass
+    await update.message.reply_html(
+        rf"Введите желаемое имя",)
+    return 1
 
 
 async def readdress(update, context):
-    # пока заглушка
-    pass
+    await update.message.reply_html(
+        rf"Введите свой адрес",)
+    return 2
 
 
 async def my_name(update, context):
@@ -101,7 +113,16 @@ async def my_address(update, context):
                 rf"Ваш адрес не найден. Проверьте коректность записи и попробуйте еще раз, вызвав функцию /address",
             )
     await update.message.reply_html(
-        rf"Пока это все, что умеет этот бот",
+        rf"Спроси у меня что-нибудь.",
+    )
+    return 3
+
+
+async def my_request(update, context):
+    request = update.message.text
+    work_with_request(request)
+    await update.message.reply_html(
+        rf"Пока бот не умеет обрабатывать запросы.",
     )
 
 
@@ -113,7 +134,8 @@ async def help_command(update, context):
                                     "/start -- начать работу.\n"
                                     "/name -- изменить имя пользователя.\n"
                                     "/address -- изменить адрес по умолчанию.\n"
-                                    "/help -- получить справку о работе программы")
+                                    "/help -- получить справку о работе программы\n"
+                                    "/stop -- завершить работу программы")
 
 
 async def echo(update, context):
@@ -136,12 +158,13 @@ def main():
             # Функция читает ответ на первый вопрос и задаёт второй.
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_name)],
             # Функция читает ответ на второй вопрос и завершает диалог.
-            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_address)]
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_address)],
+            3: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_request)]
         },
 
         # Точка прерывания диалога. В данном случае — команда /stop.
         fallbacks=[CommandHandler("help", help_command), CommandHandler("name", rename),
-                   CommandHandler("address", readdress)] #CommandHandler('stop', stop),
+                   CommandHandler("address", readdress), CommandHandler('stop', stop)]
     )
 
     application.add_handler(conv_handler)
