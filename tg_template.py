@@ -124,6 +124,7 @@ async def my_request(update, context):
     await update.message.reply_html(
         rf"Пока бот не умеет обрабатывать запросы.",
     )
+    #тут допишем еще переход к уточнению адреса и вывода. еще над диалогами поработаем.
 
 
 async def help_command(update, context):
