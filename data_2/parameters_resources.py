@@ -3,7 +3,7 @@ from flask_restful import abort, Resource
 
 from data import db_session1
 from data.parameters import Parameters
-from data.reqparse_parameters import parser
+from data_2.reqparse_parameters import parser
 
 
 def abort_if_parameters_not_found(parameters_name_or_id):

@@ -3,7 +3,7 @@ from flask_restful import abort, Resource
 
 from data import db_session2
 from data.user_data import UserData
-from data.reqparse_user_data import parser
+from data_2.reqparse_user_data import parser
 
 
 def abort_if_user_data_not_found(user_data_id_or_login):

@@ -3,7 +3,7 @@ from flask_restful import abort, Resource
 
 from data import db_session2
 from data.request_history import RequestHistory
-from data.reqparse_request_history import parser
+from data_2.reqparse_request_history import parser
 
 
 def abort_if_request_history_not_found(request_history_id_user):

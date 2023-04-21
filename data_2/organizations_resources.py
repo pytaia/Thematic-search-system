@@ -3,7 +3,7 @@ from flask_restful import abort, Resource
 
 from data import db_session1
 from data.organizations import Organizations
-from data.reqparse_organizations import parser
+from data_2.reqparse_organizations import parser
 
 
 def abort_if_organizations_not_found(organizations_name_or_id):

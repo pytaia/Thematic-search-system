@@ -145,10 +145,9 @@ async def echo(update, context):
 
 
 def main():
-    # временный юз бота @my_helpik_bot
-    # ПОМЕНЯТЬ ТОКЕН ПЕРЕД СДАЧЕЙ
+    # юз бота @thematic_search_engine_bot
     bd_main()
-    application = Application.builder().token('6042512660:AAGMdc8FAhR1XovphTfkB1Rin7lQG6Lg6gU').build()
+    application = Application.builder().token('5998954719:AAFEErzH8fLAWiYh_MF2eCDvjtYGiEowwbY').build()
 
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
 
