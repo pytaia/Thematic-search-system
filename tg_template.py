@@ -3,6 +3,8 @@ from telegram.ext import ConversationHandler
 from telegram.ext import Application, MessageHandler, filters
 from telegram.ext import CommandHandler
 
+from random import choice
+
 from data.user_data import UserData
 from data.request_history import RequestHistory
 from data import db_session2
@@ -29,7 +31,7 @@ async def start(update, context):
         db_sess.add(new_user)
         db_sess.commit()
         await update.message.reply_html(
-            rf"Привет {user.mention_html()}! Я ... .",
+            rf"Привет {user.mention_html()}! Я питон Макс.",
         )
         await update.message.reply_html(
             rf"Как к тебе обращаться? (Напиши имя или skip, если тебя устраивает это обращение)",
@@ -43,7 +45,7 @@ async def start(update, context):
         )
         if not new_user.address:
             await update.message.reply_html(
-                rf"{new_user.name}, для упрощения работы программы укажите свой адрес или напишите skip, для пропуска этого этапа.",
+                rf"{new_user.name}, для упрощения работы программы укажи свой адрес или напиши skip, для пропуска этого этапа.",
             )
             return 2
 
@@ -59,19 +61,21 @@ async def stop(update, context):
 
 
 async def rename(update, context):
+    # изменение имени
     await update.message.reply_html(
-        rf"Введите желаемое имя",)
+        rf"Введи желаемое имя",)
     return 1
 
 
 async def readdress(update, context):
+    # изменение адреса
     await update.message.reply_html(
-        rf"Введите свой адрес",)
+        rf"Введи свой адрес",)
     return 2
 
 
 async def my_name(update, context):
-    # функция для знакомства. надо добавить еще функцию изменения имени, которая будет приводить сюда же
+    # изменение имени
     user = update.effective_user
     name = update.message.text
     db_sess = db_session2.create_session()
@@ -82,17 +86,17 @@ async def my_name(update, context):
         new_user.name = name
     db_sess.commit()
     await update.message.reply_html(
-        rf"{new_user.name}, имя вы всегда сможете изменить вызвав функцию /name",
+        rf"{new_user.name}, имя ты всегда сможешь изменить вызвав функцию /name",
     )
     if not new_user.address:
         await update.message.reply_html(
-            rf"{new_user.name}, для упрощения работы программы укажите свой адрес или напишите skip, для пропуска этого этапа.",
+            rf"{new_user.name}, для упрощения работы программы укажи свой адрес или напиши skip, для пропуска этого этапа.",
         )
         return 2
 
 
 async def my_address(update, context):
-    # функция, узнающая адрес, или соглашающаяся узнать его позже. еще надо направляющую сюда функцию написать.
+    # изменение адреса
     user = update.effective_user
     address = update.message.text
     db_sess = db_session2.create_session()
@@ -106,11 +110,11 @@ async def my_address(update, context):
             new_user.address = address
             db_sess.commit()
             await update.message.reply_html(
-                rf"Ваш адрес изменен",
+                rf"Твой адрес изменен",
             )
         else:
             await update.message.reply_html(
-                rf"Ваш адрес не найден. Проверьте коректность записи и попробуйте еще раз, вызвав функцию /address",
+                rf"Твой адрес не найден. Проверь коректность записи и попробуй еще раз, вызвав функцию /address",
             )
     await update.message.reply_html(
         rf"Спроси у меня что-нибудь.",
@@ -121,8 +125,10 @@ async def my_address(update, context):
 async def my_request(update, context):
     request = update.message.text
     work_with_request(request)
+    answer = ['Или запрос принят, подожди немного', 'Секунду, шестерёнки крутятся, подожди',
+              'Сейчас постараюсь что-нибудь найти', 'Уже ищу, чуть-чуть подожди']
     await update.message.reply_html(
-        rf"Пока бот не умеет обрабатывать запросы.",
+        choice(answer),
     )
     #тут допишем еще переход к уточнению адреса и вывода. еще над диалогами поработаем.
 
@@ -130,7 +136,7 @@ async def my_request(update, context):
 async def help_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
     # фраза вывода еще будет редактироваться, пока оставлю это как заглушку
-    await update.message.reply_text("Здравствуйте, я ... .")
+    await update.message.reply_text("Здравствуй, я питон Макс.")
     await update.message.reply_text("Вот, что я уже умею:\n"
                                     "/start -- начать работу.\n"
                                     "/name -- изменить имя пользователя.\n"
@@ -140,8 +146,9 @@ async def help_command(update, context):
 
 
 async def echo(update, context):
-    # обработчик сообщений, думаю отсюда начнется твоя часть.
-    await update.message.reply_text(f"Я получил сообщение {update.message.text}")
+    # обработчик незапланированных сообщений, если пошло не по плану диалога
+    await update.message.reply_text(f"Прости, я не расслышал вопрос. Повтори, пожалуйста")
+    return 3
 
 
 def main():
