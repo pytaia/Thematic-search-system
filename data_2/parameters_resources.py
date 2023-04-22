@@ -1,8 +1,8 @@
 from flask import jsonify
 from flask_restful import abort, Resource
 
-from data import db_session1
-from data.parameters import Parameters
+from data_2 import db_session1
+from data_2.parameters import Parameters
 from data_2.reqparse_parameters import parser
 
 

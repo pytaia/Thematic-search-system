@@ -1,5 +1,5 @@
 import sqlalchemy
-from .db_session1 import SqlAlchemyBase
+from data_2.db_session1 import SqlAlchemyBase
 
 
 # база данных с запросами для разных типов организаций

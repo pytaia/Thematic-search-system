@@ -7,7 +7,7 @@ from random import choice
 
 from data.user_data import UserData
 from data.request_history import RequestHistory
-from data import db_session2
+from data import db_session
 from main import main as bd_main
 from work_with_api import address_is_true, work_with_request
 
@@ -24,7 +24,7 @@ async def start(update, context):
     """Отправляет сообщение когда получена команда /start"""
     # здесь вывод тоже будет редактироваться под стилистику общения бота, но в целом готово
     user = update.effective_user
-    db_sess = db_session2.create_session()
+    db_sess = db_session.create_session()
     if user.username not in [item.login for item in db_sess.query(UserData).all()]:
         new_user = UserData()
         new_user.login = user.username
@@ -52,7 +52,7 @@ async def start(update, context):
 
 async def stop(update, context):
     user = update.effective_user
-    db_sess = db_session2.create_session()
+    db_sess = db_session.create_session()
     new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
     await update.message.reply_html(
         rf"До свидания, {new_user.name}!",
@@ -78,7 +78,7 @@ async def my_name(update, context):
     # изменение имени
     user = update.effective_user
     name = update.message.text
-    db_sess = db_session2.create_session()
+    db_sess = db_session.create_session()
     new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
     if name == 'skip':
         new_user.name = user.mention_html()
@@ -99,15 +99,16 @@ async def my_address(update, context):
     # изменение адреса
     user = update.effective_user
     address = update.message.text
-    db_sess = db_session2.create_session()
+    db_sess = db_session.create_session()
     new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
     if address == 'skip':
         await update.message.reply_html(
             rf"Хорошо, вернемся к этому позже.",
         )
     else:
-        if address_is_true(address):
-            new_user.address = address
+        coord = address_is_true(address)
+        if coord:
+            new_user.address = coord
             db_sess.commit()
             await update.message.reply_html(
                 rf"Твой адрес изменен",

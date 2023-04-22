@@ -1,8 +1,8 @@
 from flask import jsonify
 from flask_restful import abort, Resource
 
-from data import db_session1
-from data.organizations import Organizations
+from data_2 import db_session1
+from data_2.organizations import Organizations
 from data_2.reqparse_organizations import parser
 
 

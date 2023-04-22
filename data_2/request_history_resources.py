@@ -1,7 +1,7 @@
 from flask import jsonify
 from flask_restful import abort, Resource
 
-from data import db_session2
+from data import db_session
 from data.request_history import RequestHistory
 from data_2.reqparse_request_history import parser
 

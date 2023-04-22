@@ -8,7 +8,7 @@ SqlAlchemyBase = dec.declarative_base()
 __factory = None
 
 
-# для бд system_users.db
+# для бд goods_and_services.db
 def global_init(db_file):
     global __factory
 
@@ -23,8 +23,6 @@ def global_init(db_file):
 
     engine = sa.create_engine(conn_str, echo=True)  # echo исправить на False после отладки
     __factory = orm.sessionmaker(bind=engine)
-
-    from . import __all_models2
 
     SqlAlchemyBase.metadata.create_all(engine)
 
