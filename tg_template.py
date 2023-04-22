@@ -12,7 +12,6 @@ from main import main as bd_main
 from work_with_api import address_is_true, work_with_request
 
 
-
 #logging.basicConfig(
 #    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
 #)

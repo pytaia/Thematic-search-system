@@ -11,8 +11,8 @@ api = Api(app)
 
 
 def main():
-    db_session1.global_init("db_2/goods_and_services.db")
-    db_session2.global_init("db/system_users.db")
+    #db_session1.global_init("db_2/goods_and_services.db")
+    db_session.global_init("db/system_users.db")
     # следующее скорее всего не пригодится, но пока не удаляю
     # квест не запутаться в этом:
     #api.add_resource(organizations_resources.OrganizationsListResource, '/api/v2/organizations')
