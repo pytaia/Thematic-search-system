@@ -1,4 +1,3 @@
-import logging
 from telegram.ext import ConversationHandler
 from telegram.ext import Application, MessageHandler, filters
 from telegram.ext import CommandHandler
@@ -10,13 +9,6 @@ from data.request_history import RequestHistory
 from data import db_session
 from main import main as bd_main
 from work_with_api import address_is_true, work_with_request
-
-
-#logging.basicConfig(
-#    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
-#)
-
-#logger = logging.getLogger(__name__)
 
 
 async def start(update, context):
@@ -124,13 +116,14 @@ async def my_address(update, context):
 
 async def my_request(update, context):
     request = update.message.text
+    # сюда твой класс вместо заглушки
     work_with_request(request)
     answer = ['Или запрос принят, подожди немного', 'Секунду, шестерёнки крутятся, подожди',
               'Сейчас постараюсь что-нибудь найти', 'Уже ищу, чуть-чуть подожди']
     await update.message.reply_html(
         choice(answer),
     )
-    #тут допишем еще переход к уточнению адреса и вывода. еще над диалогами поработаем.
+    #тут допишем еще переход к уточнению адреса и вывода. еще над диалогами поработаем. + насчет адреса еще не решили
 
 
 async def help_command(update, context):
@@ -148,7 +141,18 @@ async def help_command(update, context):
 async def echo(update, context):
     # обработчик незапланированных сообщений, если пошло не по плану диалога
     await update.message.reply_text(f"Прости, я не расслышал вопрос. Повтори, пожалуйста")
+    # вот тут возможно переход не сработает,тогда просто продублировать функцию my_request
     return 3
+
+
+async def voice(update, context):
+    mess = update.message.voice.file_id
+    # считывать аудио
+    answer = ['Или запрос принят, подожди немного', 'Секунду, шестерёнки крутятся, подожди',
+              'Сейчас постараюсь что-нибудь найти', 'Уже ищу, чуть-чуть подожди']
+    await update.message.reply_html(
+        choice(answer),
+    )
 
 
 def main():
@@ -157,6 +161,7 @@ def main():
     application = Application.builder().token('5998954719:AAFEErzH8fLAWiYh_MF2eCDvjtYGiEowwbY').build()
 
     text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
+    voice_handler = MessageHandler(filters.VOICE, voice)
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
@@ -175,8 +180,8 @@ def main():
     )
 
     application.add_handler(conv_handler)
-
     application.add_handler(text_handler)
+    application.add_handler(voice_handler)
 
     application.run_polling()
 
