@@ -120,23 +120,9 @@ async def my_request(update, context):
                 'К сожалению, я ничего не нашел..',
             )
     else:
-        answer = request.analysis_result_output()
-        img = getting_an_image(answer[0])
-        if img:
-            await context.bot.send_photo(
-                update.message.chat_id,
-                img,
-                caption=''
-            )
-            await context.bot.send_voice(chat_id=update.message.chat_id,
-                                         voice=answer[1])
-            if answer[2]:
-                await context.bot.send_voice(chat_id=update.message.chat_id,
-                                             voice=answer[2])
-        else:
-            await update.message.reply_html(
-                'К сожалению, я ничего не нашел..',
-            )
+        await update.message.reply_html(
+            'К сожалению, я не умею присылать голосовые сообщения(',
+        )
 
 
 async def get_response(url, params):
@@ -156,57 +142,9 @@ async def help_command(update, context):
 
 
 async def voice(update, context):
-    # обработка голосовых сообщений. должна работать, но проверь на всякий случай
-    mess = update.message.voice.file_id
-    newFile = context.bot.get_file(mess)
-    newFile.download('voice.ogg')
-    db_sess = db_session.create_session()
-    user_id = db_sess.query(UserData).filter(UserData.login.like(update.effective_user.username)).first()
-    with open('voice.ogg', 'rb') as f:
-        b = f.read()
-    request = Multiple_analysis(b, user_id.id)
-    # считывать аудио
     await update.message.reply_html(
-        choice(response_to_the_request),
+        'К сожалению, я не умею обрабатывать голосовые сообщения(',
     )
-    if request.type_output == 'text':
-        answer = getting_an_image_and_mess((request.analysis_result_output(), request.type_requests))
-        if answer:
-            await context.bot.send_photo(
-                update.message.chat_id,
-                answer[0],
-                caption=''
-            )
-            await update.message.reply_html(
-                answer[1],
-            )
-            if answer[2]:
-                await update.message.reply_html(
-                    answer[2],
-                )
-            return 2
-        else:
-            await update.message.reply_html(
-                'К сожалению, я ничего не нашел..',
-            )
-    else:
-        answer = request.analysis_result_output()
-        img = getting_an_image(answer[0])
-        if img:
-            await context.bot.send_photo(
-                update.message.chat_id,
-                img,
-                caption=''
-            )
-            await context.bot.send_voice(chat_id=update.message.chat_id,
-                                         voice=answer[1])
-            if answer[2]:
-                await context.bot.send_voice(chat_id=update.message.chat_id,
-                                             voice=answer[2])
-        else:
-            await update.message.reply_html(
-                'К сожалению, я ничего не нашел..',
-            )
 
 
 def main():
