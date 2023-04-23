@@ -1,26 +1,16 @@
 from telegram.ext import ConversationHandler
 from telegram.ext import Application, MessageHandler, filters
 from telegram.ext import CommandHandler
-import logging
 import aiohttp
 
 from random import choice
-import requests
 
 from data.user_data import UserData
-from data.request_history import RequestHistory
 from data import db_session
 from system_functions import getting_an_image
 from main import main as bd_main
 from logical_framework import Multiple_analysis
 from branching_bot_responses import response_to_the_request, ask_me
-
-
-#logging.basicConfig(
-#    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
-#)
-
-#logger = logging.getLogger(__name__)
 
 
 async def start(update, context):
@@ -113,6 +103,10 @@ async def my_request(update, context):
     await update.message.reply_html(
         answer[1],
     )
+    if answer[2]:
+        await update.message.reply_html(
+            answer[2],
+        )
     return 2
 
 
@@ -162,7 +156,7 @@ def main():
 
     application.add_handler(conv_handler)
     # обработчик гс
-    #application.add_handler(voice_handler)
+    application.add_handler(voice_handler)
 
     application.run_polling()
 
