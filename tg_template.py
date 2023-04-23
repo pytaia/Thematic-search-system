@@ -8,7 +8,7 @@ from data.user_data import UserData
 from data.request_history import RequestHistory
 from data import db_session
 from main import main as bd_main
-from work_with_api import address_is_true, work_with_request
+from system_functions import address_is_true, work_with_request
 
 
 async def start(update, context):
