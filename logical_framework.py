@@ -102,12 +102,15 @@ class Multiple_analysis():
             description = SpeechSynthesis(self.session).synthesize_stream(
                 text='. '.join([choice(speech_synthesis_Company)]),
                 voice='zahar', format='lpcm', sampleRateHertz=16000)
-            print(description)
         if self.wiki_bool:
             wikipedia.set_lang('ru')
-        return self.map_params, description, self.wiki_bool * [wikipedia.search(elem) for elem in
-                                                               list(map(lambda x: x[0], description))]
+            wiki_data = []
+            try:
+                for elem in list(map(lambda x: x[4], description)):
+                    wiki_data.append([wikipedia.search(elem)[0], wikipedia.page(elem).url])
+            except Exception:
+                pass
+        return self.map_params, description, wiki_data
 
 
-name = Multiple_analysis('аптека по адресу 45 стелковой дивизии 64/2к1', 1)
-print(name.analysis_result_output())
+name = Multiple_analysis('аптека по адресу 45 стелковой дивизии 64/2к1 с википедией', 1)

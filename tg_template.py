@@ -146,7 +146,6 @@ def main():
     bd_main()
     application = Application.builder().token('5998954719:AAFEErzH8fLAWiYh_MF2eCDvjtYGiEowwbY').build()
 
-    text_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, echo)
     voice_handler = MessageHandler(filters.VOICE, voice)
 
     conv_handler = ConversationHandler(
