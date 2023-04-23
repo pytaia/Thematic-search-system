@@ -13,7 +13,7 @@ from data import db_session
 from system_functions import getting_an_image
 from main import main as bd_main
 from logical_framework import Multiple_analysis
-from branching_bot_responses import response_to_the_request
+from branching_bot_responses import response_to_the_request, ask_me
 
 
 #logging.basicConfig(
@@ -43,11 +43,13 @@ async def start(update, context):
     else:
         user = user.username
         new_user = db_sess.query(UserData).filter(UserData.login.like(user)).first()
+        greeting = [rf"Привет, {new_user.name}!", rf"Здравствуй, {new_user.name}!",
+                    rf"Питон Макс к вашим услугам"]
         await update.message.reply_html(
-            rf"Привет, {new_user.name}!",
+            choice(greeting),
         )
         await update.message.reply_html(
-            rf"спроси меня о чем-нибудь",
+            choice(ask_me),
         )
         return 2
 
@@ -56,8 +58,10 @@ async def stop(update, context):
     user = update.effective_user
     db_sess = db_session.create_session()
     new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
+    farewell = [rf"Пока, {new_user.name}.", rf"До свидания, {new_user.name}.",
+                rf"Всего хорошего!"]
     await update.message.reply_html(
-        rf"До свидания, {new_user.name}!",
+        choice(farewell),
     )
     return ConversationHandler.END
 
@@ -84,7 +88,7 @@ async def my_name(update, context):
         rf"{new_user.name}, имя ты всегда сможешь изменить вызвав функцию /name",
     )
     await update.message.reply_html(
-        rf"{new_user.name}, спроси меня о чем-нибудь",
+        choice(ask_me),
     )
     return 2
 
@@ -129,13 +133,6 @@ async def help_command(update, context):
                                     "/stop -- завершить работу программы")
 
 
-async def echo(update, context):
-    # обработчик незапланированных сообщений, если пошло не по плану диалога
-    await update.message.reply_text(f"Прости, я не расслышал вопрос. Повтори, пожалуйста")
-    # вот тут возможно переход не сработает, тогда просто продублировать функцию my_request
-    return 2
-
-
 async def voice(update, context):
     mess = update.message.voice.file_id
     # считывать аудио
@@ -165,7 +162,7 @@ def main():
     )
 
     application.add_handler(conv_handler)
-    application.add_handler(text_handler)
+    # обработчик гс
     #application.add_handler(voice_handler)
 
     application.run_polling()

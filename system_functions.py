@@ -65,7 +65,7 @@ def getting_an_image(answer):
         mess = f"Адрес: {answer[0][1][0][0]}"
     elif answer[1] == 'Company':
         mess = []
-        for i in answer[1]:
+        for i in answer[0][1]:
             m = [f'Название: {i[4][0]} {i[0]}', f'Адрес: {i[1]}']
             if i[2]:
                 m.append(f'Время работы: {i[2]}')
