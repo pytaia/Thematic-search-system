@@ -8,7 +8,9 @@ from data.user_data import UserData
 from data.request_history import RequestHistory
 from data import db_session
 from main import main as bd_main
-from system_functions import address_is_true, work_with_request
+from system_functions import address_is_true
+from logical_framework import Multiple_analysis
+from branching_bot_responses import response_to_the_request
 
 
 async def start(update, context):
@@ -115,14 +117,15 @@ async def my_address(update, context):
 
 
 async def my_request(update, context):
-    request = update.message.text
-    # сюда твой класс вместо заглушки
-    work_with_request(request)
-    answer = ['Или запрос принят, подожди немного', 'Секунду, шестерёнки крутятся, подожди',
-              'Сейчас постараюсь что-нибудь найти', 'Уже ищу, чуть-чуть подожди']
     await update.message.reply_html(
-        choice(answer),
+        choice(response_to_the_request),
     )
+    db_sess = db_session.create_session()
+    request = update.message.text
+    user_id = db_sess.query(UserData).filter(UserData.login.like(update.effective_user.username)).first()
+    # сюда твой класс вместо заглушки
+    request = Multiple_analysis(request, user_id.id)
+    answer = request.analysis_result_output()
     #тут допишем еще переход к уточнению адреса и вывода. еще над диалогами поработаем. + насчет адреса еще не решили
 
 
@@ -148,10 +151,8 @@ async def echo(update, context):
 async def voice(update, context):
     mess = update.message.voice.file_id
     # считывать аудио
-    answer = ['Или запрос принят, подожди немного', 'Секунду, шестерёнки крутятся, подожди',
-              'Сейчас постараюсь что-нибудь найти', 'Уже ищу, чуть-чуть подожди']
     await update.message.reply_html(
-        choice(answer),
+        choice(response_to_the_request),
     )
 
 
