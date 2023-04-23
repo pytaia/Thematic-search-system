@@ -131,7 +131,3 @@ class Multiple_analysis():
                 except Exception:
                     pass
         return wiki_data
-
-
-name = Multiple_analysis('', 1)
-print(name.analysis_result_output())

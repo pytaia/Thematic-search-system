@@ -71,4 +71,7 @@ def getting_an_image(answer):
                 m.append(f'Сайт: {i[5]}')
             mess.append('\n'.join(m))
         mess = '\n\n'.join(mess)
-    return (map_api_server, mess)
+    mess2 = ''
+    if answer[0][2]:
+        mess2 = '\n\n'.join([f"Тема: {i[0]}" + '\n' + i[1] for i in answer[0][2]])
+    return (map_api_server, mess, mess2)
