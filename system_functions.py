@@ -54,19 +54,25 @@ def complex_language_condition(morph_params):
 
 
 def getting_an_image(answer):
-    map_api_server = f"http://static-maps.yandex.ru/1.x/?" \
-                     f"ll={answer[0]['ll']}&l={answer[0]['l']}" \
-                     f"&pt={'~'.join([i + ',vkbkm' for i in answer[0]['pt']])}"
-    mess = []
-    for i in answer[1]:
-        m = [f'Название: {i[4][0]} {i[0]}', f'Адрес: {i[1]}']
-        if i[2]:
-            m.append(f'Время работы: {i[2]}')
-        if i[3]:
-            m.append(f"Номер телефона: {i[3][0]}")
-        if i[5]:
-            m.append(f'Сайт: {i[5]}')
-        mess.append('\n'.join(m))
-    mess = '\n\n'.join(mess)
+    map_api_server = f"http://static-maps.yandex.ru/1.x/?"
 
+    if 'll' in answer[0][0]:
+        map_api_server += f"ll={answer[0][0]['ll']}&"
+    if 'z' in answer[0][0]:
+        map_api_server += f"z={answer[0][0]['z']}&"
+    map_api_server += f"l={answer[0][0]['l']}&pt={'~'.join([i + ',vkbkm' for i in answer[0][0]['pt']])}"
+    if answer[1] == 'Geocoder':
+        mess = f"Адрес: {answer[0][1][0][0]}"
+    elif answer[1] == 'Company':
+        mess = []
+        for i in answer[0][1]:
+            m = [f'Название: {i[4][0]} {i[0]}', f'Адрес: {i[1]}']
+            if i[2]:
+                m.append(f'Время работы: {i[2]}')
+            if i[3]:
+                m.append(f"Номер телефона: {i[3][0]}")
+            if i[5]:
+                m.append(f'Сайт: {i[5]}')
+            mess.append('\n'.join(m))
+        mess = '\n\n'.join(mess)
     return (map_api_server, mess)

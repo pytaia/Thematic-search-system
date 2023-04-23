@@ -1,1 +1,0 @@
-# для бд goods_and_services.db
