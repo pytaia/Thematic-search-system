@@ -90,6 +90,6 @@ class Multiple_analysis():
         return self.map_params, description
 
 
-analysis = Multiple_analysis('аптечней всякой аптеки аптека по 45 стрелковой дивизии 281а', 1)
+#analysis = Multiple_analysis('аптечней всякой аптеки аптека по 45 стрелковой дивизии 281а', 1)
 
-print(analysis.analysis_result_output())
+#print(analysis.analysis_result_output())

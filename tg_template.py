@@ -1,16 +1,25 @@
 from telegram.ext import ConversationHandler
 from telegram.ext import Application, MessageHandler, filters
 from telegram.ext import CommandHandler
+import logging
+import aiohttp
 
 from random import choice
+import requests
 
 from data.user_data import UserData
 from data.request_history import RequestHistory
 from data import db_session
 from main import main as bd_main
-from system_functions import address_is_true
 from logical_framework import Multiple_analysis
 from branching_bot_responses import response_to_the_request
+
+
+#logging.basicConfig(
+#    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
+#)
+
+#logger = logging.getLogger(__name__)
 
 
 async def start(update, context):
@@ -34,13 +43,12 @@ async def start(update, context):
         user = user.username
         new_user = db_sess.query(UserData).filter(UserData.login.like(user)).first()
         await update.message.reply_html(
-            rf"Привет {new_user.name}!",
+            rf"Привет, {new_user.name}!",
         )
-        if not new_user.address:
-            await update.message.reply_html(
-                rf"{new_user.name}, для упрощения работы программы укажи свой адрес или напиши skip, для пропуска этого этапа.",
-            )
-            return 2
+        await update.message.reply_html(
+            rf"спроси меня о чем-нибудь",
+        )
+        return 2
 
 
 async def stop(update, context):
@@ -60,13 +68,6 @@ async def rename(update, context):
     return 1
 
 
-async def readdress(update, context):
-    # изменение адреса
-    await update.message.reply_html(
-        rf"Введи свой адрес",)
-    return 2
-
-
 async def my_name(update, context):
     # изменение имени
     user = update.effective_user
@@ -81,39 +82,10 @@ async def my_name(update, context):
     await update.message.reply_html(
         rf"{new_user.name}, имя ты всегда сможешь изменить вызвав функцию /name",
     )
-    if not new_user.address:
-        await update.message.reply_html(
-            rf"{new_user.name}, для упрощения работы программы укажи свой адрес или напиши skip, для пропуска этого этапа.",
-        )
-        return 2
-
-
-async def my_address(update, context):
-    # изменение адреса
-    user = update.effective_user
-    address = update.message.text
-    db_sess = db_session.create_session()
-    new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
-    if address == 'skip':
-        await update.message.reply_html(
-            rf"Хорошо, вернемся к этому позже.",
-        )
-    else:
-        coord = address_is_true(address)
-        if coord:
-            new_user.address = coord
-            db_sess.commit()
-            await update.message.reply_html(
-                rf"Твой адрес изменен",
-            )
-        else:
-            await update.message.reply_html(
-                rf"Твой адрес не найден. Проверь коректность записи и попробуй еще раз, вызвав функцию /address",
-            )
     await update.message.reply_html(
-        rf"Спроси у меня что-нибудь.",
+        rf"{new_user.name}, спроси меня о чем-нибудь",
     )
-    return 3
+    return 2
 
 
 async def my_request(update, context):
@@ -126,7 +98,32 @@ async def my_request(update, context):
     # сюда твой класс вместо заглушки
     request = Multiple_analysis(request, user_id.id)
     answer = request.analysis_result_output()
-    #тут допишем еще переход к уточнению адреса и вывода. еще над диалогами поработаем. + насчет адреса еще не решили
+    # пока без гс
+    map_api_server = "http://static-maps.yandex.ru/1.x/"
+    response = requests.get(map_api_server, params=answer[0])
+    mess = []
+    for i in answer[1]:
+        m = [f'Название: {i[4][0]} {i[0]}', f'Адрес: {i[1]}']
+        if i[2]:
+            m.append(f'Время работы: {i[2]}')
+        if i[3]:
+            m.append(f"Номер телефона: {i[3][0]}")
+        if i[5]:
+            m.append(f'Сайт: {i[5]}')
+        mess.append('\n'.join(m))
+    mess = '\n\n'.join(mess)
+    await context.bot.send_photo(
+        update.message.chat_id,
+        response,
+        caption=mess
+    )
+    return 2
+
+
+async def get_response(url, params):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as resp:
+            return await resp.json()
 
 
 async def help_command(update, context):
@@ -136,7 +133,6 @@ async def help_command(update, context):
     await update.message.reply_text("Вот, что я уже умею:\n"
                                     "/start -- начать работу.\n"
                                     "/name -- изменить имя пользователя.\n"
-                                    "/address -- изменить адрес по умолчанию.\n"
                                     "/help -- получить справку о работе программы\n"
                                     "/stop -- завершить работу программы")
 
@@ -144,8 +140,8 @@ async def help_command(update, context):
 async def echo(update, context):
     # обработчик незапланированных сообщений, если пошло не по плану диалога
     await update.message.reply_text(f"Прости, я не расслышал вопрос. Повтори, пожалуйста")
-    # вот тут возможно переход не сработает,тогда просто продублировать функцию my_request
-    return 3
+    # вот тут возможно переход не сработает, тогда просто продублировать функцию my_request
+    return 2
 
 
 async def voice(update, context):
@@ -168,21 +164,17 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            # Функция читает ответ на первый вопрос и задаёт второй.
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_name)],
-            # Функция читает ответ на второй вопрос и завершает диалог.
-            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_address)],
-            3: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_request)]
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, my_request)]
         },
 
-        # Точка прерывания диалога. В данном случае — команда /stop.
         fallbacks=[CommandHandler("help", help_command), CommandHandler("name", rename),
-                   CommandHandler("address", readdress), CommandHandler('stop', stop)]
+                   CommandHandler('stop', stop)]
     )
 
     application.add_handler(conv_handler)
     application.add_handler(text_handler)
-    application.add_handler(voice_handler)
+    #application.add_handler(voice_handler)
 
     application.run_polling()
 
