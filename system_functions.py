@@ -51,3 +51,22 @@ def complex_language_condition(morph_params):
                  'Orgn', 'Trad', 'UNKN', 'LATN']]) and all([elem not in morph_params for elem in
                                                             ['PRED', 'COMP', 'CONJ', 'PRCL', 'INTJ', 'Qual', 'Cmp2',
                                                              'V-ej', 'Erro', 'NPRO']])
+
+
+def getting_an_image(answer):
+    map_api_server = f"http://static-maps.yandex.ru/1.x/?" \
+                     f"ll={answer[0]['ll']}&l={answer[0]['l']}" \
+                     f"&pt={'~'.join([i + ',vkbkm' for i in answer[0]['pt']])}"
+    mess = []
+    for i in answer[1]:
+        m = [f'Название: {i[4][0]} {i[0]}', f'Адрес: {i[1]}']
+        if i[2]:
+            m.append(f'Время работы: {i[2]}')
+        if i[3]:
+            m.append(f"Номер телефона: {i[3][0]}")
+        if i[5]:
+            m.append(f'Сайт: {i[5]}')
+        mess.append('\n'.join(m))
+    mess = '\n\n'.join(mess)
+
+    return (map_api_server, mess)

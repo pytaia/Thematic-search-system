@@ -10,6 +10,7 @@ import requests
 from data.user_data import UserData
 from data.request_history import RequestHistory
 from data import db_session
+from system_functions import getting_an_image
 from main import main as bd_main
 from logical_framework import Multiple_analysis
 from branching_bot_responses import response_to_the_request
@@ -99,23 +100,14 @@ async def my_request(update, context):
     request = Multiple_analysis(request, user_id.id)
     answer = request.analysis_result_output()
     # пока без гс
-    map_api_server = "http://static-maps.yandex.ru/1.x/"
-    response = requests.get(map_api_server, params=answer[0])
-    mess = []
-    for i in answer[1]:
-        m = [f'Название: {i[4][0]} {i[0]}', f'Адрес: {i[1]}']
-        if i[2]:
-            m.append(f'Время работы: {i[2]}')
-        if i[3]:
-            m.append(f"Номер телефона: {i[3][0]}")
-        if i[5]:
-            m.append(f'Сайт: {i[5]}')
-        mess.append('\n'.join(m))
-    mess = '\n\n'.join(mess)
+    answer = getting_an_image(answer)
     await context.bot.send_photo(
         update.message.chat_id,
-        response,
-        caption=mess
+        answer[0],
+        caption=''
+    )
+    await update.message.reply_html(
+        answer[1],
     )
     return 2
 
