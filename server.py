@@ -1,6 +1,7 @@
 from telegram.ext import ConversationHandler
 from telegram.ext import Application, MessageHandler, filters
 from telegram.ext import CommandHandler
+from telegram import ReplyKeyboardMarkup
 import aiohttp
 
 from random import choice
@@ -11,6 +12,10 @@ from system_functions import getting_an_image, getting_an_image_and_mess
 from main import main as bd_main
 from logical_framework import Multiple_analysis
 from branching_bot_responses import response_to_the_request, ask_me
+
+reply_keyboard1 = [['/start', '/help'],
+                   ['/name', '/stop']]
+markup1 = ReplyKeyboardMarkup(reply_keyboard1, one_time_keyboard=False)
 
 
 async def start(update, context):
@@ -25,6 +30,7 @@ async def start(update, context):
         db_sess.commit()
         await update.message.reply_html(
             rf"Привет {user.mention_html()}! Я питон Макс.",
+            reply_markup=markup1
         )
         await update.message.reply_html(
             rf"Как к тебе обращаться? (Напиши имя или skip, если тебя устраивает это обращение)",
@@ -93,36 +99,43 @@ async def my_request(update, context):
     # сюда твой класс вместо заглушки
     request = Multiple_analysis(request, user_id.id)
     if request.type_output == 'text':
-        answer = (request.analysis_result_output(), request.type_requests)
-        # пока без гс
-        answer = getting_an_image_and_mess(answer)
-        await context.bot.send_photo(
-            update.message.chat_id,
-            answer[0],
-            caption=''
-        )
-        await update.message.reply_html(
-            answer[1],
-        )
-        if answer[2]:
-            await update.message.reply_html(
-                answer[2],
+        answer = getting_an_image_and_mess((request.analysis_result_output(), request.type_requests))
+        if answer is not False:
+            await context.bot.send_photo(
+                update.message.chat_id,
+                answer[0],
+                caption=''
             )
-        return 2
+            await update.message.reply_html(
+                answer[1],
+            )
+            if answer[2]:
+                await update.message.reply_html(
+                    answer[2],
+                )
+            return 2
+        else:
+            await update.message.reply_html(
+                'К сожалению, я ничего не нашел..',
+            )
     else:
         answer = request.analysis_result_output()
-        img = (answer[0])
-        await context.bot.send_photo(
-            update.message.chat_id,
-            img,
-            caption=''
-        )
-        await context.bot.send_voice(chat_id=update.message.chat_id,
-                                     voice=answer[1])
-        if answer[2]:
+        img = getting_an_image(answer[0])
+        if img:
+            await context.bot.send_photo(
+                update.message.chat_id,
+                img,
+                caption=''
+            )
             await context.bot.send_voice(chat_id=update.message.chat_id,
-                                         voice=answer[2])
-
+                                         voice=answer[1])
+            if answer[2]:
+                await context.bot.send_voice(chat_id=update.message.chat_id,
+                                             voice=answer[2])
+        else:
+            await update.message.reply_html(
+                'К сожалению, я ничего не нашел..',
+            )
 
 
 async def get_response(url, params):
@@ -156,35 +169,43 @@ async def voice(update, context):
         choice(response_to_the_request),
     )
     if request.type_output == 'text':
-        answer = (request.analysis_result_output(), request.type_requests)
-        # пока без гс
-        answer = getting_an_image_and_mess(answer)
-        await context.bot.send_photo(
-            update.message.chat_id,
-            answer[0],
-            caption=''
-        )
-        await update.message.reply_html(
-            answer[1],
-        )
-        if answer[2]:
-            await update.message.reply_html(
-                answer[2],
+        answer = getting_an_image_and_mess((request.analysis_result_output(), request.type_requests))
+        if answer:
+            await context.bot.send_photo(
+                update.message.chat_id,
+                answer[0],
+                caption=''
             )
-        return 2
+            await update.message.reply_html(
+                answer[1],
+            )
+            if answer[2]:
+                await update.message.reply_html(
+                    answer[2],
+                )
+            return 2
+        else:
+            await update.message.reply_html(
+                'К сожалению, я ничего не нашел..',
+            )
     else:
         answer = request.analysis_result_output()
-        img = (answer[0])
-        await context.bot.send_photo(
-            update.message.chat_id,
-            img,
-            caption=''
-        )
-        await context.bot.send_voice(chat_id=update.message.chat_id,
-                                     voice=answer[1])
-        if answer[2]:
+        img = getting_an_image(answer[0])
+        if img:
+            await context.bot.send_photo(
+                update.message.chat_id,
+                img,
+                caption=''
+            )
             await context.bot.send_voice(chat_id=update.message.chat_id,
-                                         voice=answer[2])
+                                         voice=answer[1])
+            if answer[2]:
+                await context.bot.send_voice(chat_id=update.message.chat_id,
+                                             voice=answer[2])
+        else:
+            await update.message.reply_html(
+                'К сожалению, я ничего не нашел..',
+            )
 
 
 def main():

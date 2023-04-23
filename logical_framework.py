@@ -131,8 +131,3 @@ class Multiple_analysis():
                 except Exception:
                     pass
         return wiki_data
-
-
-name = Multiple_analysis('аптека по 45 стрелковой дивизии 64/2к1 голосом', 1)
-print(name.analysis_result_output())
-
