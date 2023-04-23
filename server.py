@@ -51,6 +51,7 @@ async def start(update, context):
 
 
 async def stop(update, context):
+    # функция остановки работы
     user = update.effective_user
     db_sess = db_session.create_session()
     new_user = db_sess.query(UserData).filter(UserData.login.like(user.username)).first()
@@ -63,7 +64,7 @@ async def stop(update, context):
 
 
 async def rename(update, context):
-    # изменение имени
+    # изменение имени (переход на основную функцию)
     await update.message.reply_html(
         rf"Введи желаемое имя",)
     return 1
@@ -90,13 +91,13 @@ async def my_name(update, context):
 
 
 async def my_request(update, context):
+    # функция обработки запросов
     await update.message.reply_html(
         choice(response_to_the_request),
     )
     db_sess = db_session.create_session()
     request = update.message.text
     user_id = db_sess.query(UserData).filter(UserData.login.like(update.effective_user.username)).first()
-    # сюда твой класс вместо заглушки
     request = Multiple_analysis(request, user_id.id)
     if request.type_output == 'text':
         answer = getting_an_image_and_mess((request.analysis_result_output(), request.type_requests))
@@ -145,8 +146,7 @@ async def get_response(url, params):
 
 
 async def help_command(update, context):
-    """Отправляет сообщение когда получена команда /help"""
-    # фраза вывода еще будет редактироваться, пока оставлю это как заглушку
+    # Отправляет сообщение когда получена команда /help
     await update.message.reply_text("Здравствуй, я питон Макс.")
     await update.message.reply_text("Вот, что я уже умею:\n"
                                     "/start -- начать работу.\n"
@@ -156,6 +156,7 @@ async def help_command(update, context):
 
 
 async def voice(update, context):
+    # обработка голосовых сообщений. должна работать, но проверь на всякий случай
     mess = update.message.voice.file_id
     newFile = context.bot.get_file(mess)
     newFile.download('voice.ogg')
@@ -227,6 +228,7 @@ def main():
                    CommandHandler('stop', stop)]
     )
 
+    # основной сценарий
     application.add_handler(conv_handler)
     # обработчик гс
     application.add_handler(voice_handler)

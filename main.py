@@ -8,6 +8,7 @@ app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 api = Api(app)
 
 
+# запуск бд
 def main():
     db_session.global_init("db/system_users.db")
 

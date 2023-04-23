@@ -49,6 +49,7 @@ def recorder_address_for_voice(description, type_requests):
 
 
 def address_is_true(address):
+    # проверка существования адреса
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
     geocoder_params = {
         "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
@@ -69,6 +70,7 @@ def complex_language_condition(morph_params):
 
 
 def getting_an_image_and_mess(answer):
+    # получение изображения (ссылки) и отредактированного сообщения
     try:
         map_api_server = f"http://static-maps.yandex.ru/1.x/?"
 
@@ -100,6 +102,7 @@ def getting_an_image_and_mess(answer):
 
 
 def getting_an_image(answer):
+    # получение изображения (ссылки)
     try:
         map_api_server = f"http://static-maps.yandex.ru/1.x/?"
         if 'll' in answer[0][0]:
