@@ -86,7 +86,7 @@ class Multiple_analysis():
             self.map_params['pt'].append(','.join(list(map(str, elem.coord))))
         if len(self.map_params['pt']) == 1:
             self.map_params['ll'] = self.map_params['pt'][0]
-
+            self.map_params['z'] = 16
         if self.type_output == 'voice':
             description = SpeechSynthesis(self.session).synthesize_stream(
                 text='. '.join([choice(speech_synthesis_Company)]),
