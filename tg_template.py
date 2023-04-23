@@ -98,7 +98,7 @@ async def my_request(update, context):
     user_id = db_sess.query(UserData).filter(UserData.login.like(update.effective_user.username)).first()
     # сюда твой класс вместо заглушки
     request = Multiple_analysis(request, user_id.id)
-    answer = request.analysis_result_output()
+    answer = (request.analysis_result_output(), request.type_requests)
     # пока без гс
     answer = getting_an_image(answer)
     await context.bot.send_photo(
