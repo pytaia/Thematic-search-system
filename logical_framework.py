@@ -3,11 +3,11 @@ from data import db_session
 from data.request_history import RequestHistory
 from speechkit import Session, SpeechSynthesis, ShortAudioRecognition
 from datetime import datetime
-from system_functions import Request_parameters, complex_language_condition
+from system_functions import Request_parameters, complex_language_condition, address_is_true
 from random import choice
 import requests
 import wikipedia
-from branching_bot_responses import speech_synthesis_Company, speech_synthesis_Geocoder
+from branching_bot_responses import speech_synthesis_Company
 import pymorphy2
 import re
 
@@ -27,6 +27,7 @@ class Multiple_analysis():
         main()
         self.db_sess = db_session.create_session()
         self.speech_processing() if isinstance(self.user_request, bytes) else None
+        self.user_request = self.user_request.lower()
         self.context_params = RequestHistory(user_id=user_id, created_date=datetime.now(), question=''.join(
             re.split(r'\b', self.user_request)[1::2]), answer=self.boolean_result)
 
@@ -42,15 +43,6 @@ class Multiple_analysis():
             "b1g53mngvuej0gor2tsa")
 
         self.branching_and_stages()
-
-    def branching_and_stages(self):  # Структура и процесс анализа запроса
-        try:
-            self.primitive_intent_analysis()
-            self.search_adjusted_parameters()
-            self.request_history_record()
-        except Exception:
-            self.boolean_result = False
-            self.request_history_record()
 
     def primitive_intent_analysis(self):  # Анализ запроса пользователя, извлечение смысловой части
         morph_base = pymorphy2.MorphAnalyzer()
@@ -82,6 +74,18 @@ class Multiple_analysis():
         self.db_sess.add(self.context_params)
         self.db_sess.commit()
 
+
+
+    def branching_and_stages(self):  # Структура и процесс анализа запроса
+        try:
+            self.primitive_intent_analysis()
+            self.search_adjusted_parameters()
+            self.request_history_record()
+        except Exception:
+            self.boolean_result = False
+            self.context_params.answer = False
+            self.request_history_record()
+
     def search_adjusted_parameters(self):  # Запрос по найденым намерениям в запросе пользователя
         self.request_params['text'] = ' '.join(self.data_request)
         self.search_parameters = requests.get("https://search-maps.yandex.ru/v1/", self.request_params).json()[
@@ -91,26 +95,43 @@ class Multiple_analysis():
             'properties'].keys() else 'Geocoder'
 
     def analysis_result_output(self):  # Формирование вывода
-        description = [params.output_params() for params in
-                       [Request_parameters(result, self.type_requests) for result in self.search_parameters]]
-        for elem in [Request_parameters(result, self.type_requests) for result in self.search_parameters]:
-            self.map_params['pt'].append(','.join(list(map(str, elem.coord))))
-        if len(self.map_params['pt']) == 1:
-            self.map_params['ll'] = self.map_params['pt'][0]
-            self.map_params['z'] = 16
-        if self.type_output == 'voice':
-            description = SpeechSynthesis(self.session).synthesize_stream(
-                text='. '.join([choice(speech_synthesis_Company)]),
-                voice='zahar', format='lpcm', sampleRateHertz=16000)
-        if self.wiki_bool:
+        if address_is_true(' '.join(self.data_request)):
+            description = [params.output_params() for params in
+                           [Request_parameters(result, self.type_requests) for result in self.search_parameters]]
+
+            for elem in [Request_parameters(result, self.type_requests) for result in self.search_parameters]:
+                self.map_params['pt'].append(','.join(list(map(str, elem.coord))))
+            if len(self.map_params['pt']) == 1:
+                self.map_params['ll'] = self.map_params['pt'][0]
+                self.map_params['z'] = 16
+            if self.type_output == 'voice':
+                description = SpeechSynthesis(self.session).synthesize_stream(
+                    text='. '.join([choice(speech_synthesis_Company)]),
+                    voice='zahar', format='lpcm', sampleRateHertz=16000)
+            return self.map_params, description, self.wiki_data_response(description, True)
+        else:
+            return {}, [], self.wiki_data_response(self.data_request, False, extra=True)
+
+    def wiki_data_response(self, description, param, extra=False):
+        wiki_data = []
+        if self.wiki_bool or extra:
             wikipedia.set_lang('ru')
-            wiki_data = []
-            try:
-                for elem in list(map(lambda x: x[4], description)):
-                    wiki_data.append([wikipedia.search(elem)[0], wikipedia.page(elem).url])
-            except Exception:
-                pass
-        return self.map_params, description, wiki_data
+            if param:
+                try:
+                    for elem in list(map(lambda x: x[4], description)):
+                        if 'вики' not in elem and 'wiki' not in elem:
+                            wiki_data.append([wikipedia.search(elem)[0], wikipedia.page(elem).url])
+                except Exception:
+                    pass
+            else:
+                try:
+                    for elem in self.data_request:
+                        if 'вики' not in elem and 'wiki' not in elem:
+                            wiki_data.append([wikipedia.search(elem)[0], wikipedia.page(elem).url])
+                except Exception:
+                    pass
+        return wiki_data
 
 
-name = Multiple_analysis('аптека по адресу 45 стелковой дивизии 64/2к1 с википедией', 1)
+name = Multiple_analysis('', 1)
+print(name.analysis_result_output())
