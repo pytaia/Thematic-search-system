@@ -4,14 +4,19 @@ class Request_parameters():
     def __init__(self, data, type):
         self.type = type
         self.coord = data['geometry']['coordinates']
-        if self.type == 'CompanyMetaData':
+        if self.type == 'Company':
             self.name = data['properties']['CompanyMetaData']['name']
             self.address = data['properties']['CompanyMetaData']['address']
-            self.hours = data['properties']['CompanyMetaData']['text']
-            self.phone = list(map(lambda phone: phone['formatted'], data['properties']['CompanyMetaData']['Phones']))
+            self.hours = data['properties']['CompanyMetaData']['Hours']['text'] \
+                if 'Hours' in data['properties']['CompanyMetaData'].keys() else ''
+            self.phone = list(map(lambda phone: phone['formatted'],
+                                  data['properties']['CompanyMetaData']['Phones'])) \
+                if 'Phones' in data['properties']['CompanyMetaData'].keys() else ''
             self.categories = list(
                 map(lambda category: category['name'], data['properties']['CompanyMetaData']['Categories']))
-            self.url = data['properties']['CompanyMetaData']['url']
+
+            self.url = data['properties']['CompanyMetaData']['url'] if 'url' in data['properties'][
+                'CompanyMetaData'].keys() else ''
         else:
             self.address = data['properties']['GeocoderMetaData']['text']
 

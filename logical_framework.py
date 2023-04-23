@@ -72,13 +72,17 @@ class Multiple_analysis():
 
     def search_adjusted_parameters(self):
         self.request_params['text'] = ' '.join(self.data_request)
-        self.search_parameters = requests.get("https://search-maps.yandex.ru/v1/", self.request_params).json()['features']
+        self.search_parameters = requests.get("https://search-maps.yandex.ru/v1/", self.request_params).json()[
+            'features']
 
-        self.type_requests = 'Company' if 'CompanyMetaData' in self.search_parameters else 'Geocoder'
+        self.type_requests = 'Company' if 'CompanyMetaData' in self.search_parameters[0][
+            'properties'].keys() else 'Geocoder'
 
     def analysis_result_output(self):
         description = [params.output_params() for params in
                        [Request_parameters(result, self.type_requests) for result in self.search_parameters]]
+        for elem in [Request_parameters(result, self.type_requests) for result in self.search_parameters]:
+            self.map_params['pt'].append(','.join(list(map(str, elem.coord))))
         if self.type_output == 'voice':
             description = SpeechSynthesis(self.session).synthesize_stream(
                 text='. '.join([choice(speech_synthesis_Company)]),
