@@ -158,6 +158,7 @@ async def help_command(update, context):
 async def voice(update, context):
     # обработка голосовых сообщений. должна работать, но проверь на всякий случай
     mess = update.message.voice.file_id
+    # вот здесь падает:
     newFile = context.bot.get_file(mess)
     newFile.download('voice.ogg')
     db_sess = db_session.create_session()
