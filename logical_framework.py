@@ -54,17 +54,21 @@ class Multiple_analysis():
                              complex_language_condition(re.split(r'\b', str(morph_base.parse(word)[0].tag))[1::2])]
         self.context_params.question = '&'.join(self.data_request)
 
+        print(list(map(lambda word: [elem.normal_form for elem in morph_base.parse(word)],
+                              re.split(r'\b', self.user_request)[1::2])))
+
         for words in list(map(lambda word: [elem.normal_form for elem in morph_base.parse(word)],
                               re.split(r'\b', self.user_request)[1::2])):
             if any([word in ['гибрид', 'гибридный', 'гибридным', 'смешешанный', 'смешать'] for word in words]):
                 self.map_params['l'] = 'sat,skl'
             elif any([word in ['спутник', 'спутниковый', 'спутником'] for word in words]):
                 self.map_params['l'] = 'sat'
+            elif any([word in ['аудио', 'голос', 'голосовое', 'голосовым', 'голосовой'] for word in words]):
+                self.type_output = 'voice'
 
     def speech_processing(self):
         self.user_request = ShortAudioRecognition(self.session).recognize(self.user_request, format='lpcm',
                                                                           sampleRateHertz=16000)
-        self.type_output = 'voice'
 
     def request_history_record(self):
         self.db_sess.add(self.context_params)
@@ -87,9 +91,5 @@ class Multiple_analysis():
             description = SpeechSynthesis(self.session).synthesize_stream(
                 text='. '.join([choice(speech_synthesis_Company)]),
                 voice='zahar', format='lpcm', sampleRateHertz=16000)
+            print(description)
         return self.map_params, description
-
-
-analysis = Multiple_analysis('аптечней всякой аптеки аптека по 45 стрелковой дивизии 281а', 1)
-
-print(analysis.analysis_result_output())
