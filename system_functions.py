@@ -29,6 +29,25 @@ class Request_parameters():
             return [self.address]
 
 
+def recorder_address_for_voice(description, type_requests):
+    if type_requests == 'Geocoder':
+        mess = f"Адрес: {description[1]}"
+    elif type_requests == 'Company':
+        mess = []
+        print(description)
+        for i in description:
+            m = [f'Название: {i[4][0]} {i[0]}', f'Адрес: {i[1]}']
+            if i[2]:
+                m.append(f'Время работы: {i[2]}')
+            if i[3]:
+                m.append(f"Номер телефона: {i[3][0]}")
+            if i[5]:
+                m.append(f'Сайт: {i[5]}')
+            mess.append('\n'.join(m))
+        mess = '\n\n'.join(mess)
+    return mess
+
+
 def address_is_true(address):
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
     geocoder_params = {

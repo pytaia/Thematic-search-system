@@ -3,7 +3,7 @@ from data import db_session
 from data.request_history import RequestHistory
 from speechkit import Session, SpeechSynthesis, ShortAudioRecognition
 from datetime import datetime
-from system_functions import Request_parameters, complex_language_condition, address_is_true
+from system_functions import Request_parameters, complex_language_condition, address_is_true, recorder_address_for_voice
 from random import choice
 import requests
 import wikipedia
@@ -106,7 +106,7 @@ class Multiple_analysis():
                 self.map_params['z'] = 16
             if self.type_output == 'voice':
                 description = SpeechSynthesis(self.session).synthesize_stream(
-                    text='. '.join([choice(speech_synthesis_Company)]),
+                    text=recorder_address_for_voice(description, self.type_requests),
                     voice='zahar', format='lpcm', sampleRateHertz=16000)
             return self.map_params, description, self.wiki_data_response(description, True)
         else:
@@ -133,5 +133,5 @@ class Multiple_analysis():
         return wiki_data
 
 
-name = Multiple_analysis('', 1)
+name = Multiple_analysis('аптека по 45 стрелковой дивизии 64/2к1 голосом', 1)
 print(name.analysis_result_output())
