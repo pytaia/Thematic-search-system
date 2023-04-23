@@ -13,6 +13,8 @@ from main import main as bd_main
 from logical_framework import Multiple_analysis
 from branching_bot_responses import response_to_the_request, ask_me
 
+# смотреть только эту ветку
+
 reply_keyboard1 = [['/start', '/help'],
                    ['/name', '/stop']]
 markup1 = ReplyKeyboardMarkup(reply_keyboard1, one_time_keyboard=False)
