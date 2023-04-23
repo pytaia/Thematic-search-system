@@ -7,7 +7,7 @@ from random import choice
 
 from data.user_data import UserData
 from data import db_session
-from system_functions import getting_an_image
+from system_functions import getting_an_image, getting_an_image_and_mess
 from main import main as bd_main
 from logical_framework import Multiple_analysis
 from branching_bot_responses import response_to_the_request, ask_me
@@ -92,22 +92,37 @@ async def my_request(update, context):
     user_id = db_sess.query(UserData).filter(UserData.login.like(update.effective_user.username)).first()
     # сюда твой класс вместо заглушки
     request = Multiple_analysis(request, user_id.id)
-    answer = (request.analysis_result_output(), request.type_requests)
-    # пока без гс
-    answer = getting_an_image(answer)
-    await context.bot.send_photo(
-        update.message.chat_id,
-        answer[0],
-        caption=''
-    )
-    await update.message.reply_html(
-        answer[1],
-    )
-    if answer[2]:
-        await update.message.reply_html(
-            answer[2],
+    if request.type_output == 'text':
+        answer = (request.analysis_result_output(), request.type_requests)
+        # пока без гс
+        answer = getting_an_image_and_mess(answer)
+        await context.bot.send_photo(
+            update.message.chat_id,
+            answer[0],
+            caption=''
         )
-    return 2
+        await update.message.reply_html(
+            answer[1],
+        )
+        if answer[2]:
+            await update.message.reply_html(
+                answer[2],
+            )
+        return 2
+    else:
+        answer = request.analysis_result_output()
+        img = (answer[0])
+        await context.bot.send_photo(
+            update.message.chat_id,
+            img,
+            caption=''
+        )
+        await context.bot.send_voice(chat_id=update.message.chat_id,
+                                     voice=answer[1])
+        if answer[2]:
+            await context.bot.send_voice(chat_id=update.message.chat_id,
+                                         voice=answer[2])
+
 
 
 async def get_response(url, params):
@@ -129,10 +144,47 @@ async def help_command(update, context):
 
 async def voice(update, context):
     mess = update.message.voice.file_id
+    newFile = context.bot.get_file(mess)
+    newFile.download('voice.ogg')
+    db_sess = db_session.create_session()
+    user_id = db_sess.query(UserData).filter(UserData.login.like(update.effective_user.username)).first()
+    with open('voice.ogg', 'rb') as f:
+        b = f.read()
+    request = Multiple_analysis(b, user_id.id)
     # считывать аудио
     await update.message.reply_html(
         choice(response_to_the_request),
     )
+    if request.type_output == 'text':
+        answer = (request.analysis_result_output(), request.type_requests)
+        # пока без гс
+        answer = getting_an_image_and_mess(answer)
+        await context.bot.send_photo(
+            update.message.chat_id,
+            answer[0],
+            caption=''
+        )
+        await update.message.reply_html(
+            answer[1],
+        )
+        if answer[2]:
+            await update.message.reply_html(
+                answer[2],
+            )
+        return 2
+    else:
+        answer = request.analysis_result_output()
+        img = (answer[0])
+        await context.bot.send_photo(
+            update.message.chat_id,
+            img,
+            caption=''
+        )
+        await context.bot.send_voice(chat_id=update.message.chat_id,
+                                     voice=answer[1])
+        if answer[2]:
+            await context.bot.send_voice(chat_id=update.message.chat_id,
+                                         voice=answer[2])
 
 
 def main():

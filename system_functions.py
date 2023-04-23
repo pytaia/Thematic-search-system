@@ -68,7 +68,7 @@ def complex_language_condition(morph_params):
                                                              'V-ej', 'Erro', 'NPRO']])
 
 
-def getting_an_image(answer):
+def getting_an_image_and_mess(answer):
     map_api_server = f"http://static-maps.yandex.ru/1.x/?"
 
     if 'll' in answer[0][0]:
@@ -94,3 +94,14 @@ def getting_an_image(answer):
     if answer[0][2]:
         mess2 = '\n\n'.join([f"Тема: {i[0]}" + '\n' + i[1] for i in answer[0][2]])
     return (map_api_server, mess, mess2)
+
+
+def getting_an_image(answer):
+    map_api_server = f"http://static-maps.yandex.ru/1.x/?"
+
+    if 'll' in answer[0][0]:
+        map_api_server += f"ll={answer[0][0]['ll']}&"
+    if 'z' in answer[0][0]:
+        map_api_server += f"z={answer[0][0]['z']}&"
+    map_api_server += f"l={answer[0][0]['l']}&pt={'~'.join([i + ',vkbkm' for i in answer[0][0]['pt']])}"
+    return map_api_server
