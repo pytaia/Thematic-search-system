@@ -26,7 +26,7 @@ class Multiple_analysis():
         self.context_params = RequestHistory(user_id=user_id, created_date=datetime.now(), question=''.join(
             re.split(r'\b', self.user_request)[1::2]), answer=self.boolean_result)
 
-        self.map_params = {'ll': '39.206117,51.656495', 'z': 15, 'l': 'map', 'pt': []}
+        self.map_params = {'l': 'map', 'pt': []}
         self.request_params = {'apikey': "dda3ddba-c9ea-4ead-9010-f43fbc15c6e3",
                       'text': '',
                       'lang': 'ru_RU',
@@ -53,9 +53,6 @@ class Multiple_analysis():
         self.data_request = [word for word in re.split(r'\b', self.user_request)[1::2] if
                              complex_language_condition(re.split(r'\b', str(morph_base.parse(word)[0].tag))[1::2])]
         self.context_params.question = '&'.join(self.data_request)
-
-        print(list(map(lambda word: [elem.normal_form for elem in morph_base.parse(word)],
-                              re.split(r'\b', self.user_request)[1::2])))
 
         for words in list(map(lambda word: [elem.normal_form for elem in morph_base.parse(word)],
                               re.split(r'\b', self.user_request)[1::2])):
@@ -87,9 +84,16 @@ class Multiple_analysis():
                        [Request_parameters(result, self.type_requests) for result in self.search_parameters]]
         for elem in [Request_parameters(result, self.type_requests) for result in self.search_parameters]:
             self.map_params['pt'].append(','.join(list(map(str, elem.coord))))
+        if len(self.map_params['pt']) == 1:
+            self.map_params['ll'] = self.map_params['pt'][0]
+
         if self.type_output == 'voice':
             description = SpeechSynthesis(self.session).synthesize_stream(
                 text='. '.join([choice(speech_synthesis_Company)]),
                 voice='zahar', format='lpcm', sampleRateHertz=16000)
             print(description)
         return self.map_params, description
+
+
+name = Multiple_analysis('аптека по адресу 45 стелковой дивизии 64/2к1', 1)
+print(name.analysis_result_output())
